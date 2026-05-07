@@ -4,6 +4,8 @@ My partner was sent for blood tests by her GP. The earliest slot available was o
 
 Within 30 minutes we had a next-day appointment. We actually did several hops — each time a closer slot appeared, she'd book it and immediately cancel the previous one to free it up for someone else. The end result was a next-day appointment, and every slot we vacated along the way went back into the pool.
 
+My partner also wanted alerts on her phone, so I added automatic device registration — just message the bot and you're on the list. No config changes or restarts needed.
+
 If you use this and book an earlier slot, please cancel your old one. Someone else might be in the same boat.
 
 ---
