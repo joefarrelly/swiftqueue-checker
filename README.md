@@ -1,6 +1,14 @@
 # SwiftQueue Checker
 
-Monitors [SwiftQueue Wigan](https://www.swiftqueue.co.uk/wigan.php) for blood test slots and sends a Telegram alert the moment one appears before your target date. Runs in Docker — no Python setup required.
+My partner was sent for blood tests by her GP. The earliest slot available was over four weeks away. The GP mentioned that cancellations do come up and you can get lucky with something sooner, so she booked the four-week slot as a backup and I built this to watch for earlier ones.
+
+Within 30 minutes we had a next-day appointment. We actually did several hops — each time a closer slot appeared, she'd book it and immediately cancel the previous one to free it up for someone else. The end result was a next-day appointment, and every slot we vacated along the way went back into the pool.
+
+If you use this and book an earlier slot, please cancel your old one. Someone else might be in the same boat.
+
+---
+
+SwiftQueue Checker monitors a SwiftQueue location and sends a Telegram alert the moment a slot appears before your target date. Runs in Docker — no Python setup required.
 
 Any device that messages your bot gets automatically registered and will receive alerts. No config changes or restarts needed.
 
