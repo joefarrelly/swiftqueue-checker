@@ -114,7 +114,7 @@ Don't see your area? SwiftQueue URLs follow the pattern `https://www.swiftqueue.
 | File | Purpose |
 |---|---|
 | `.env` | Your bot token, target date, and location — keep this private, don't commit it |
-| `config.json` | Auto-managed list of registered chat IDs and display names |
+| `config.json` | Auto-managed list of registered chat IDs and display names (not committed — see `config.example.json`) |
 
 To change your target date or location, update `.env` and restart the container:
 
