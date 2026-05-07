@@ -72,9 +72,18 @@ Two processes run continuously inside the container:
 | Thread | What it does |
 |---|---|
 | **Checker** | Polls SwiftQueue every 60 seconds. Sends a Telegram alert when a slot is found on or before your target date. |
-| **Listener** | Long-polls the Telegram bot. Any time someone sends the bot a message, their chat ID is saved to `config.json` and they're added to the alert list immediately. |
+| **Listener** | Long-polls the Telegram bot. Any time someone sends the bot a message, their chat ID and display name are saved to `config.json` and they're added to the alert list immediately. |
 
-Registered devices are stored in `config.json` and persist across container restarts.
+Registered devices are stored in `config.json` and persist across container restarts. Each entry includes the Telegram display name at the time of registration so you can tell who's who:
+
+```json
+{
+  "chat_ids": [
+    {"id": "123456789", "name": "Joe"},
+    {"id": "987654321", "name": "Sarah"}
+  ]
+}
+```
 
 ## Available locations
 
@@ -105,7 +114,7 @@ Don't see your area? SwiftQueue URLs follow the pattern `https://www.swiftqueue.
 | File | Purpose |
 |---|---|
 | `.env` | Your bot token, target date, and location — keep this private, don't commit it |
-| `config.json` | Auto-managed list of registered chat IDs |
+| `config.json` | Auto-managed list of registered chat IDs and display names |
 
 To change your target date or location, update `.env` and restart the container:
 
@@ -113,7 +122,7 @@ To change your target date or location, update `.env` and restart the container:
 docker-compose restart
 ```
 
-To remove a device, delete their chat ID from `config.json`. The container picks up the change on next restart.
+To remove a device, delete their entry from `config.json`. The container picks up the change on next restart.
 
 ## Running without Docker
 

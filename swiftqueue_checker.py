@@ -32,7 +32,7 @@ CHECK_EVERY = 60
 # ── Persistence ───────────────────────────────────────────────────────────────
 
 CONFIG_FILE  = Path(__file__).parent / "config.json"
-_chat_ids: list[str] = []
+_chat_ids: list[dict] = []  # [{"id": "...", "name": "..."}]
 _lock = threading.Lock()
 
 
@@ -40,7 +40,11 @@ def _load_chat_ids() -> None:
     if CONFIG_FILE.exists():
         try:
             data = json.loads(CONFIG_FILE.read_text())
-            _chat_ids.extend(data.get("chat_ids", []))
+            for entry in data.get("chat_ids", []):
+                if isinstance(entry, str):
+                    _chat_ids.append({"id": entry, "name": "Unknown"})
+                else:
+                    _chat_ids.append(entry)
         except Exception:
             pass
 
@@ -51,9 +55,9 @@ def _save_chat_ids() -> None:
 
 def _register(chat_id: str, name: str) -> None:
     with _lock:
-        if chat_id in _chat_ids:
+        if any(e["id"] == chat_id for e in _chat_ids):
             return
-        _chat_ids.append(chat_id)
+        _chat_ids.append({"id": chat_id, "name": name})
         _save_chat_ids()
     log.info("Registered %s (%s)", name, chat_id)
     _send(
@@ -82,11 +86,11 @@ HEADERS_FETCH = {
 }
 
 
-def _send(chat_ids: list[str], message: str) -> None:
+def _send(chat_ids: list[dict], message: str) -> None:
     if not chat_ids:
         return
     api = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
-    for cid in chat_ids:
+    for cid in [e["id"] for e in chat_ids]:
         try:
             r = requests.post(
                 api,
