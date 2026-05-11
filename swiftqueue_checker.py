@@ -86,10 +86,12 @@ HEADERS_FETCH = {
 }
 
 
-def _send(chat_ids: list[dict], message: str) -> None:
+def _send(chat_ids: list[dict], message: str) -> dict[str, int]:
+    """Returns {chat_id: message_id} for each successfully sent message."""
     if not chat_ids:
-        return
+        return {}
     api = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
+    sent = {}
     for cid in [e["id"] for e in chat_ids]:
         try:
             r = requests.post(
@@ -97,10 +99,28 @@ def _send(chat_ids: list[dict], message: str) -> None:
                 json={"chat_id": cid, "text": message, "parse_mode": "HTML"},
                 timeout=10,
             )
-            if not r.ok:
+            if r.ok:
+                sent[cid] = r.json()["result"]["message_id"]
+            else:
                 log.warning("Telegram error (%s): %s", cid, r.text)
         except Exception as e:
             log.warning("Telegram send failed (%s): %s", cid, e)
+    return sent
+
+
+def _edit(chat_message_ids: dict[str, int], message: str) -> None:
+    api = f"https://api.telegram.org/bot{TOKEN}/editMessageText"
+    for cid, mid in chat_message_ids.items():
+        try:
+            r = requests.post(
+                api,
+                json={"chat_id": cid, "message_id": mid, "text": message, "parse_mode": "HTML"},
+                timeout=10,
+            )
+            if not r.ok:
+                log.warning("Telegram edit error (%s): %s", cid, r.text)
+        except Exception as e:
+            log.warning("Telegram edit failed (%s): %s", cid, e)
 
 
 # ── Listener thread ───────────────────────────────────────────────────────────
@@ -179,33 +199,42 @@ def fetch_slots() -> list[tuple[datetime, str, str]]:
 
 
 def run_checker(target: datetime) -> None:
-    alerted: set = set()
+    alerted: dict[tuple, dict[str, int]] = {}  # slot -> {chat_id: message_id}
     log.info("Checker started — watching for slots on or before %s.", target.strftime("%d %b %Y"))
 
     while True:
         try:
             slots = fetch_slots()
             early = [(dt, t, c) for dt, t, c in slots if dt <= target]
+            early_set = set(early)
+
+            gone = [slot for slot in alerted if slot not in early_set]
+            for slot in gone:
+                dt, t, c = slot
+                log.info("Slot gone — editing alert: %s at %s — %s", dt.strftime("%d %b %Y"), t, c)
+                _edit(
+                    alerted.pop(slot),
+                    f"❌ <b>No longer available</b>\n\n<s>{dt.strftime('%d %b %Y')} at {t} — {c}</s>",
+                )
 
             if not early:
                 earliest = min(slots, key=lambda x: x[0])[0].strftime("%d-%m-%Y") if slots else "none"
                 log.info("No early slots. Earliest available: %s", earliest)
             else:
-                new = [(dt, t, c) for dt, t, c in early if (dt, t, c) not in alerted]
+                new = [s for s in early if s not in alerted]
                 if new:
-                    lines = "\n".join(
-                        f"  • {dt.strftime('%d %b %Y')} at {t} — {c}"
-                        for dt, t, c in sorted(new)
-                    )
-                    log.info("ALERT — %d new slot(s) found:\n%s", len(new), lines)
+                    log.info("ALERT — %d new slot(s) found:", len(new))
                     with _lock:
                         recipients = list(_chat_ids)
-                    _send(
-                        recipients,
-                        f"🗓 <b>SwiftQueue slot available!</b>\n\n{lines}\n\n"
-                        f"<a href=\"{URL}\">Book now →</a>",
-                    )
-                    alerted.update(new)
+                    for slot in sorted(new):
+                        dt, t, c = slot
+                        log.info("  • %s at %s — %s", dt.strftime("%d %b %Y"), t, c)
+                        sent = _send(
+                            recipients,
+                            f"🗓 <b>SwiftQueue slot available!</b>\n\n{dt.strftime('%d %b %Y')} at {t} — {c}\n\n"
+                            f"<a href=\"{URL}\">Book now →</a>",
+                        )
+                        alerted[slot] = sent
                 else:
                     log.info("%d early slot(s) — already alerted.", len(early))
 
