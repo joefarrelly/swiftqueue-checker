@@ -8,8 +8,9 @@ from datetime import datetime, timezone
 
 import requests
 
+from app.areas import AREAS
 from app.db import get_db, init_db
-from app.notifications import send_push, send_telegram
+from app.notifications import edit_telegram_message, send_telegram
 from app.scraper import fetch_slots
 
 log = logging.getLogger(__name__)
@@ -52,14 +53,50 @@ def _get_users_for_slot(url: str, slot_date: str) -> list[dict]:
     return [dict(row) for row in rows]
 
 
+def _telegram_message_text(body: str, url: str) -> str:
+    return f'🗓 <b>SwiftQueue slot available!</b>\n\n{body}\n\n<a href="{url}">Book now →</a>'
+
+
+def _telegram_gone_text(body: str) -> str:
+    return f"❌ <b>Slot no longer available</b>\n\n<s>{body}</s>"
+
+
+def _store_telegram_message(
+    token: str,
+    chat_id: str,
+    message_id: int,
+    url: str,
+    slot_date: str,
+    slot_time: str,
+    clinic: str,
+) -> None:
+    with get_db() as conn:
+        conn.execute(
+            """INSERT OR IGNORE INTO telegram_messages
+               (token, chat_id, message_id, area_url, slot_date, slot_time, clinic)
+               VALUES (?,?,?,?,?,?,?)""",
+            (token, chat_id, message_id, url, slot_date, slot_time, clinic),
+        )
+
+
 # ── Poll ──────────────────────────────────────────────────────────────────────
 
 
 def _poll_url(url: str, previous: dict[str, set[tuple[str, str, str]]]) -> None:
     try:
         slots = fetch_slots(url)
-        current = {(dt.strftime("%Y-%m-%d"), t, c) for dt, t, c in slots}
-        prev = previous.get(url, set())
+        current = {(dt.strftime("%Y-%m-%d"), t, c) for dt, t, c, _u in slots}
+        booking_urls = {(dt.strftime("%Y-%m-%d"), t, c): _u for dt, t, c, _u in slots}
+        if url not in previous:
+            with get_db() as conn:
+                rows = conn.execute(
+                    "SELECT slot_date, slot_time, clinic FROM active_slots WHERE url=?",
+                    (url,),
+                ).fetchall()
+            previous[url] = {
+                (r["slot_date"], r["slot_time"], r["clinic"]) for r in rows
+            }
+        prev = previous[url]
         new_slots = current - prev
         gone_slots = prev - current
         now = datetime.now(timezone.utc).isoformat()
@@ -70,35 +107,57 @@ def _poll_url(url: str, previous: dict[str, set[tuple[str, str, str]]]) -> None:
                 continue
             dt_display = datetime.strptime(slot_date, "%Y-%m-%d").strftime("%d %b %Y")
             body = f"{dt_display} at {slot_time} — {clinic}"
-            log.info("New slot: %s @ %s", body, url)
+            log.info("New slot: %s @ %s — notifying %d user(s)", body, url, len(users))
             for user in users:
-                if user["push_subscription"]:
-                    send_push(
-                        user["push_subscription"],
-                        "SwiftQueue slot available!",
-                        body,
-                        url,
+                with get_db() as conn:
+                    subscribers = conn.execute(
+                        "SELECT chat_id FROM telegram_subscribers WHERE token=?",
+                        (user["token"],),
+                    ).fetchall()
+                for sub in subscribers:
+                    booking_url = booking_urls.get((slot_date, slot_time, clinic), url)
+                    msg_id = send_telegram(
+                        sub["chat_id"], _telegram_message_text(body, booking_url)
                     )
-                if user["telegram_chat_id"]:
-                    send_telegram(
-                        user["telegram_chat_id"],
-                        f"🗓 <b>SwiftQueue slot available!</b>\n\n{body}\n\n"
-                        f'<a href="{url}">Book now →</a>',
-                    )
+                    if msg_id:
+                        _store_telegram_message(
+                            user["token"],
+                            sub["chat_id"],
+                            msg_id,
+                            url,
+                            slot_date,
+                            slot_time,
+                            clinic,
+                        )
 
         with get_db() as conn:
             for slot_date, slot_time, clinic in new_slots:
                 conn.execute(
                     """INSERT OR IGNORE INTO active_slots
-                       (url, slot_date, slot_time, clinic, first_seen_at, seen_at)
-                       VALUES (?,?,?,?,?,?)""",
-                    (url, slot_date, slot_time, clinic, now, now),
+                       (url, slot_date, slot_time, clinic, booking_url, first_seen_at, seen_at)
+                       VALUES (?,?,?,?,?,?,?)""",
+                    (
+                        url,
+                        slot_date,
+                        slot_time,
+                        clinic,
+                        booking_urls.get((slot_date, slot_time, clinic), ""),
+                        now,
+                        now,
+                    ),
                 )
             for slot_date, slot_time, clinic in current & prev:
                 conn.execute(
-                    """UPDATE active_slots SET seen_at=?
+                    """UPDATE active_slots SET seen_at=?, booking_url=?
                        WHERE url=? AND slot_date=? AND slot_time=? AND clinic=?""",
-                    (now, url, slot_date, slot_time, clinic),
+                    (
+                        now,
+                        booking_urls.get((slot_date, slot_time, clinic), ""),
+                        url,
+                        slot_date,
+                        slot_time,
+                        clinic,
+                    ),
                 )
             for slot_date, slot_time, clinic in gone_slots:
                 conn.execute(
@@ -106,11 +165,76 @@ def _poll_url(url: str, previous: dict[str, set[tuple[str, str, str]]]) -> None:
                        WHERE url=? AND slot_date=? AND slot_time=? AND clinic=?""",
                     (url, slot_date, slot_time, clinic),
                 )
+                msgs = conn.execute(
+                    """SELECT chat_id, message_id FROM telegram_messages
+                       WHERE area_url=? AND slot_date=? AND slot_time=? AND clinic=?""",
+                    (url, slot_date, slot_time, clinic),
+                ).fetchall()
+                dt_display = datetime.strptime(slot_date, "%Y-%m-%d").strftime(
+                    "%d %b %Y"
+                )
+                gone_body = f"{dt_display} at {slot_time} — {clinic}"
+                for msg in msgs:
+                    edit_telegram_message(
+                        msg["chat_id"],
+                        msg["message_id"],
+                        _telegram_gone_text(gone_body),
+                    )
+                conn.execute(
+                    """DELETE FROM telegram_messages
+                       WHERE area_url=? AND slot_date=? AND slot_time=? AND clinic=?""",
+                    (url, slot_date, slot_time, clinic),
+                )
 
+        with get_db() as conn:
+            conn.execute(
+                "INSERT OR REPLACE INTO area_meta (url, last_scraped_at) VALUES (?,?)",
+                (url, now),
+            )
         previous[url] = current
 
     except Exception as e:
         log.warning("Poll error for %s: %s", url, e)
+
+
+# ── Telegram helpers ─────────────────────────────────────────────────────────
+
+
+def _send_current_slots_to_telegram(token: str, chat_id: str) -> None:
+    """Send all currently available matching slots to a newly linked Telegram account."""
+    try:
+        with get_db() as conn:
+            user = conn.execute(
+                "SELECT area_url, target_date FROM users WHERE token=? AND active=1",
+                (token,),
+            ).fetchone()
+            if not user:
+                return
+            slots = conn.execute(
+                """SELECT slot_date, slot_time, clinic, booking_url FROM active_slots
+                   WHERE url=? AND slot_date <= ?
+                   ORDER BY slot_date, slot_time""",
+                (user["area_url"], user["target_date"]),
+            ).fetchall()
+        for slot in slots:
+            dt_display = datetime.strptime(slot["slot_date"], "%Y-%m-%d").strftime(
+                "%d %b %Y"
+            )
+            body = f"{dt_display} at {slot['slot_time']} — {slot['clinic']}"
+            booking_url = slot["booking_url"] or user["area_url"]
+            msg_id = send_telegram(chat_id, _telegram_message_text(body, booking_url))
+            if msg_id:
+                _store_telegram_message(
+                    token,
+                    chat_id,
+                    msg_id,
+                    user["area_url"],
+                    slot["slot_date"],
+                    slot["slot_time"],
+                    slot["clinic"],
+                )
+    except Exception as e:
+        log.warning("_send_current_slots_to_telegram error: %s", e)
 
 
 # ── Telegram account-linking listener ────────────────────────────────────────
@@ -147,20 +271,26 @@ def _run_telegram_listener() -> None:
                     continue
                 token = text.split(" ", 1)[1].strip()
                 with get_db() as conn:
-                    result = conn.execute(
-                        "UPDATE users SET telegram_chat_id=? WHERE token=? AND active=1",
-                        (chat_id, token),
+                    user = conn.execute(
+                        "SELECT area_url FROM users WHERE token=? AND active=1",
+                        (token,),
+                    ).fetchone()
+                    if not user:
+                        continue
+                    conn.execute(
+                        "INSERT OR IGNORE INTO telegram_subscribers (token, chat_id) VALUES (?,?)",
+                        (token, chat_id),
                     )
-                if result.rowcount:
-                    log.info("Linked Telegram chat %s via token", chat_id)
-                    requests.post(
-                        f"https://api.telegram.org/bot{_TELEGRAM_TOKEN}/sendMessage",
-                        json={
-                            "chat_id": chat_id,
-                            "text": "✅ Telegram linked! You'll receive SwiftQueue alerts here.",
-                        },
-                        timeout=10,
-                    )
+                area_name = next(
+                    (k for k, v in AREAS.items() if v == user["area_url"]),
+                    user["area_url"],
+                )
+                log.info("Linked Telegram chat %s via token", chat_id)
+                send_telegram(
+                    chat_id,
+                    f"✅ Telegram linked! You'll receive SwiftQueue alerts here for <b>{area_name}</b>.",
+                )
+                _send_current_slots_to_telegram(token, chat_id)
         except Exception as e:
             log.warning("Telegram listener error: %s", e)
             time.sleep(5)

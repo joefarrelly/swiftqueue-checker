@@ -4,13 +4,13 @@ Create a branch from dev, commit all pending changes, push, and open a PR target
 
 ## Steps
 
-1. **Check current state** — run `git fetch origin` to get the latest remote state, then run `git status` and `git diff` to understand what's changed. Also check the current branch with `git branch --show-current`. If we're on `dev`, ensure the local branch is up to date with `git pull origin dev` before branching.
+1. **Check current state** — run `git fetch origin` to get the latest remote state, then run `git status` and `git diff` to understand what's changed. Also check the current branch with `git branch --show-current`. If we're on `dev` (or `main`/`master`), ensure the local branch is up to date with `git pull origin dev` before branching.
 
-2. **Ensure we're working from dev** — if there are uncommitted changes on a non-dev branch already, proceed on the current branch. If we're on `dev` with uncommitted changes, create a new branch before committing.
+2. **Ensure we're working from dev** — if there are uncommitted changes on a non-dev branch already, proceed on the current branch. If we're on `dev` (or `main`/`master`) with uncommitted changes, we need to create a new branch before committing.
 
-3. **Generate a branch name** — look at the staged and unstaged diffs to infer what the changes are about. Produce a short kebab-case branch name that describes the work (e.g., `fix-auth-redirect`, `add-area-filter`, `update-scraper`). Do not use generic names like `changes` or `update`. The branch name must not already exist remotely — check with `git branch -r`.
+3. **Generate a branch name** — look at the staged and unstaged diffs to infer what the changes are about. Produce a short kebab-case branch name that describes the work (e.g., `fix-auth-redirect`, `add-gear-filter`, `update-api-constants`). Do not use generic names like `changes` or `update`. The branch name must not already exist remotely — check with `git branch -r`.
 
-4. **Create and checkout the branch** — if needed, run `git checkout -b <branch-name>` from the current HEAD.
+4. **Create and checkout the branch** — if needed, run `git checkout -b <branch-name>` from the current HEAD (which should be on dev or the existing feature branch).
 
 5. **Stage all changes** — run `git add -A` unless the user specified particular files.
 
@@ -29,7 +29,7 @@ Create a branch from dev, commit all pending changes, push, and open a PR target
 9. **Create the PR** — use the `mcp__github__create_pull_request` tool with:
    - `owner` and `repo` derived from `git remote get-url origin`
    - `head`: the new branch name
-   - `base`: `dev`
+   - `base`: `dev` (fall back to `main` if `dev` does not exist on the remote — check with `git branch -r | grep dev`)
    - `title`: always `"Merge <branch-name> into dev"` (e.g., `"Merge fix-auth-redirect into dev"`)
    - `body`: omit (leave empty — commit messages carry all the context)
 
@@ -38,7 +38,7 @@ Create a branch from dev, commit all pending changes, push, and open a PR target
 ## Notes
 
 - If there are no uncommitted changes at all, tell the user and stop.
-- If the current branch is already a feature branch (not dev) with no remote tracking branch, skip step 4 and just push it.
+- If the current branch is already a feature branch (not dev/main/master) with no remote tracking branch, skip step 4 and just push it.
 - If a pre-commit hook fails, fix the issue and retry rather than skipping the hook.
 - Never force-push.
 - Always confirm the PR was created successfully and share the URL.

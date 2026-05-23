@@ -11,16 +11,36 @@
 </head>
 <body>
 <main>
-    <section id="form-section">
-        <h1>SwiftQueue Checker</h1>
-        <p>Get notified the moment an appointment slot opens up before your target date.</p>
+    <h1>SwiftQueue Checker</h1>
+    <p class="subtitle">Get notified the moment an appointment slot opens up before your target date.</p>
 
-        <div id="existing-hint" class="hint-box" hidden>
-            <span class="hint-detail">You're already registered.</span>
-            <a href="#">Unsubscribe</a> to change your preferences.
+    <div id="registered-state" hidden>
+        <div class="registered-info">
+            <p id="registered-detail"></p>
+            {% if telegram_bot %}
+            <a id="telegram-link-btn" href="#" target="_blank" rel="noopener" class="btn-telegram" hidden onclick="startTelegramLinkPoll()">
+                Link Telegram
+            </a>
+            <div id="telegram-share" hidden>
+                <p class="telegram-share-label">Telegram linked. Share this link to add more accounts:</p>
+                <div class="telegram-share-row">
+                    <input id="telegram-share-url" type="text" readonly>
+                    <button id="telegram-copy-btn" type="button" onclick="copyTelegramLink()">Copy</button>
+                </div>
+            </div>
+            {% endif %}
         </div>
 
-        <form id="register-form" novalidate>
+        <div id="slots-card" class="notifications-card">
+            <h2>Available slots</h2>
+            <ul id="slots-list">
+                <li id="no-slots" class="no-alerts">No matching slots right now — checking every minute.</li>
+            </ul>
+        </div>
+    </div>
+
+    <form id="register-form" novalidate>
+        <div id="form-fields">
             <div class="field">
                 <label for="area_url">Area</label>
                 <select name="area_url" id="area_url" required>
@@ -35,32 +55,15 @@
                 <label for="target_date">Notify me if a slot is available on or before</label>
                 <input type="date" name="target_date" id="target_date" required>
             </div>
-
-            <p id="error-msg" hidden></p>
-
-            <button type="submit" class="btn-primary">Get Notified</button>
-        </form>
-    </section>
-
-    <section id="success-section" hidden>
-        <h2>You're registered!</h2>
-        <p>You'll receive a browser notification as soon as a slot becomes available.</p>
-
-        {% if telegram_bot %}
-        <div class="telegram-row" hidden>
-            <p>Want alerts on Telegram too? It works across all your devices.</p>
-            <a id="telegram-link" href="#" target="_blank" rel="noopener" class="btn-telegram">
-                Link Telegram
-            </a>
         </div>
-        {% endif %}
 
-        <a id="unsubscribe-link" href="#" class="secondary-link">Unsubscribe</a>
-    </section>
+        <p id="error-msg" hidden></p>
+
+        <button type="submit" id="submit-btn" class="btn-primary">Get Notified</button>
+    </form>
 </main>
 
 <script>
-    const VAPID_PUBLIC_KEY = {{ vapid_public_key | tojson }};
     const TELEGRAM_BOT = {{ telegram_bot | tojson }};
 </script>
 <script src="/static/app.js"></script>

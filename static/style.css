@@ -4,6 +4,8 @@
     padding: 0;
 }
 
+[hidden] { display: none !important; }
+
 body {
     font-family: system-ui, -apple-system, sans-serif;
     background: #f0f4f8;
@@ -111,6 +113,30 @@ input[type="date"]:focus {
     cursor: default;
 }
 
+.btn-danger {
+    display: block;
+    width: 100%;
+    padding: 0.75rem;
+    background: #dc2626;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    margin-top: 0.25rem;
+}
+
+.btn-danger:hover:not(:disabled) {
+    background: #b91c1c;
+}
+
+.btn-danger:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
 .btn-telegram {
     display: block;
     width: 100%;
@@ -122,50 +148,143 @@ input[type="date"]:focus {
     font-weight: 600;
     text-align: center;
     text-decoration: none;
-    margin-top: 0.5rem;
+    margin-top: 0.75rem;
 }
 
 .btn-telegram:hover {
     background: #1a9bde;
 }
 
-#success-section {
-    text-align: center;
-    padding: 0.5rem 0;
-}
-
-#success-section p {
-    margin-bottom: 1.25rem;
-}
-
-.telegram-row {
-    margin-bottom: 1.25rem;
-}
-
-.secondary-link {
-    display: block;
-    margin-top: 1rem;
-    font-size: 0.875rem;
-    color: #888;
-    text-decoration: none;
-}
-
-.secondary-link:hover {
-    color: #555;
-}
-
-.hint-box {
-    margin-top: 1.5rem;
-    padding: 0.75rem 1rem;
+.registered-info {
+    margin-top: 1.25rem;
+    padding: 1rem;
     background: #f0f4f8;
     border-radius: 8px;
-    font-size: 0.875rem;
-    color: #555;
 }
 
-.hint-box a {
-    color: #2563eb;
+.registered-info p {
+    margin-bottom: 0;
+    color: #333;
+    font-size: 0.9375rem;
+}
+
+#telegram-share {
+    margin-top: 0.75rem;
+}
+
+.telegram-share-label {
+    font-size: 0.8125rem;
+    color: #666;
+    margin-bottom: 0.4rem;
+}
+
+.telegram-share-row {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.telegram-share-row input {
+    flex: 1;
+    padding: 0.4rem 0.6rem;
+    border: 1.5px solid #ddd;
+    border-radius: 6px;
+    font-size: 0.8125rem;
+    color: #555;
+    background: #f8fafc;
+    min-width: 0;
+}
+
+.telegram-share-row button {
+    padding: 0.4rem 0.75rem;
+    background: #f0f4f8;
+    border: 1.5px solid #ddd;
+    border-radius: 6px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.telegram-share-row button:hover {
+    background: #e2e8f0;
+}
+
+.notifications-card {
+    margin-top: 1.25rem;
+    padding: 1rem;
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+}
+
+.notifications-card h2 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #888;
+    margin-bottom: 0.75rem;
+}
+
+.notifications-card ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.notif-item {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    font-size: 0.9375rem;
+    color: #1a1a1a;
+}
+
+.notif-body {
     font-weight: 500;
+}
+
+.notif-link {
+    white-space: nowrap;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #2563eb;
+    text-decoration: none;
+    flex-shrink: 0;
+}
+
+.notif-link:hover {
+    text-decoration: underline;
+}
+
+.no-alerts {
+    font-size: 0.875rem;
+    color: #aaa;
+}
+
+.toast {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(0.5rem);
+    background: #1a1a1a;
+    color: white;
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px;
+    font-size: 0.9375rem;
+    opacity: 0;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 100;
+    max-width: calc(100vw - 2rem);
+    text-align: center;
+    pointer-events: none;
+}
+
+.toast-visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
 }
 
 a {

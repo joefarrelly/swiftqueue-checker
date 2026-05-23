@@ -37,13 +37,45 @@ def init_db() -> None:
                 active            INTEGER DEFAULT 1
             );
 
+            CREATE TABLE IF NOT EXISTS telegram_subscribers (
+                id        INTEGER PRIMARY KEY AUTOINCREMENT,
+                token     TEXT NOT NULL,
+                chat_id   TEXT NOT NULL,
+                linked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE (token, chat_id)
+            );
+
+            CREATE TABLE IF NOT EXISTS telegram_messages (
+                id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                token      TEXT NOT NULL,
+                chat_id    TEXT NOT NULL,
+                message_id INTEGER NOT NULL,
+                area_url   TEXT NOT NULL,
+                slot_date  DATE NOT NULL,
+                slot_time  TEXT NOT NULL,
+                clinic     TEXT NOT NULL,
+                UNIQUE (token, area_url, slot_date, slot_time, clinic)
+            );
+
+            CREATE TABLE IF NOT EXISTS area_meta (
+                url            TEXT PRIMARY KEY,
+                last_scraped_at TEXT
+            );
+
             CREATE TABLE IF NOT EXISTS active_slots (
-                url          TEXT NOT NULL,
-                slot_date    DATE NOT NULL,
-                slot_time    TEXT NOT NULL,
-                clinic       TEXT NOT NULL,
+                url           TEXT NOT NULL,
+                slot_date     DATE NOT NULL,
+                slot_time     TEXT NOT NULL,
+                clinic        TEXT NOT NULL,
+                booking_url   TEXT DEFAULT '',
                 first_seen_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                seen_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                seen_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 PRIMARY KEY (url, slot_date, slot_time, clinic)
             );
         """)
+        try:
+            conn.execute(
+                "ALTER TABLE active_slots ADD COLUMN booking_url TEXT DEFAULT ''"
+            )
+        except Exception:
+            pass  # column already exists

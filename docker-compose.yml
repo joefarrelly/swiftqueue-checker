@@ -4,7 +4,7 @@ services:
     command: flask --app "app:create_app()" run --host 0.0.0.0 --debug
     volumes:
       - .:/app
-      - /app/data
+      - swiftqueue_data:/app/data
     ports:
       - "5000:5000"
     env_file: .env
@@ -15,6 +15,9 @@ services:
     command: python -m checker.worker
     volumes:
       - .:/app
-      - /app/data
+      - swiftqueue_data:/app/data
     env_file: .env
     restart: unless-stopped
+
+volumes:
+  swiftqueue_data:
