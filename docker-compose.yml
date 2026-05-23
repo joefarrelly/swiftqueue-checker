@@ -1,7 +1,20 @@
 services:
+  web:
+    build: .
+    command: flask --app "app:create_app()" run --host 0.0.0.0 --debug
+    volumes:
+      - .:/app
+      - /app/data
+    ports:
+      - "5000:5000"
+    env_file: .env
+    restart: unless-stopped
+
   checker:
     build: .
-    env_file: .env
+    command: python -m checker.worker
     volumes:
-      - ./config:/app/config
+      - .:/app
+      - /app/data
+    env_file: .env
     restart: unless-stopped

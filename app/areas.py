@@ -1,0 +1,17 @@
+AREAS: dict[str, str] = {
+    "Wrightington, Wigan and Leigh NHS Phlebotomy Clinics": "https://www.swiftqueue.co.uk/wigan.php",
+    "Northampton General Hospital Network": "https://www.swiftqueue.co.uk/northampton.php",
+    "Coventry and Warwickshire Blood Tests": "https://www.swiftqueue.co.uk/uhcw.php",
+    "Medway Phlebotomy Network": "https://www.swiftqueue.co.uk/medway.php",
+    "Royal Berkshire Blood Tests": "https://www.swiftqueue.co.uk/royal_berkshire.php",
+    "West Suffolk NHS": "https://www.swiftqueue.co.uk/west_suffolk.php",
+    "Plymouth Adult Blood Test": "https://www.swiftqueue.co.uk/plymouth_adult_blood_test.php",
+    "East London NHS Phlebotomy Clinics": "https://www.swiftqueue.co.uk/elft.php",
+    "Whittington Health NHS Trust": "https://www.swiftqueue.co.uk/whittington.php",
+    "University College London Hospitals": "https://www.swiftqueue.co.uk/UCLH_CC.php",
+    "Frimley Health NHS Foundation Trust Bloods": "https://www.swiftqueue.co.uk/fhftpaeds.php",
+    "Lewisham and Greenwich NHS Trust": "https://www.swiftqueue.co.uk/lewisham.php",
+    "Newham University Hospital Phlebotomy": "https://www.swiftqueue.co.uk/NUH_Phlebotomy.php",
+    "East Sussex Phlebotomy": "https://www.swiftqueue.co.uk/east_sussex_phlebotomy.php",
+    "Pathology First Blood Test Clinic Network": "https://www.swiftqueue.co.uk/ippmain.php",
+}

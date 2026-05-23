@@ -1,7 +1,6 @@
 .env
-config.json
-config/config.json
 __pycache__/
 *.pyc
 .venv/
-.claude/
+.claude/settings.local.json
+data/

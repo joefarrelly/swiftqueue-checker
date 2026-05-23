@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unsubscribe — SwiftQueue Checker</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<main>
+    {% if done %}
+        {% if not_found %}
+            <h1>Already unsubscribed</h1>
+            <p>This link has already been used or has expired.</p>
+        {% else %}
+            <h1>Unsubscribed</h1>
+            <p>You won't receive any more SwiftQueue alerts.</p>
+            <script>localStorage.removeItem("swiftqueue_token");</script>
+        {% endif %}
+        <a href="/" class="btn-primary" style="margin-top:1rem;display:block;text-align:center">Register again</a>
+    {% else %}
+        <h1>Unsubscribe</h1>
+        <p>You're currently watching <strong>{{ area_name }}</strong> for slots on or before <strong>{{ target_date }}</strong>.</p>
+        <p>Are you sure you want to stop receiving alerts?</p>
+        <form method="POST">
+            <button type="submit" class="btn-primary">Yes, unsubscribe me</button>
+        </form>
+        <a href="/" class="secondary-link">Cancel</a>
+    {% endif %}
+</main>
+</body>
+</html>
