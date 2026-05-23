@@ -9,7 +9,6 @@ from flask import Blueprint, current_app, jsonify, render_template, request
 from app.areas import AREAS
 from app.db import get_db
 from app.notifications import send_push
-from app.scraper import fetch_slots
 
 bp = Blueprint("main", __name__)
 
@@ -56,7 +55,7 @@ def register():
     with get_db() as conn:
         existing = conn.execute(
             "SELECT token FROM users WHERE push_subscription LIKE ? AND active=1",
-            (f'%{endpoint}%',),
+            (f"%{endpoint}%",),
         ).fetchone()
         if existing:
             return jsonify({"token": existing["token"]})
@@ -79,11 +78,14 @@ def register():
 def registration(token: str):
     with get_db() as conn:
         user = conn.execute(
-            "SELECT area_url, target_date FROM users WHERE token=? AND active=1", (token,)
+            "SELECT area_url, target_date FROM users WHERE token=? AND active=1",
+            (token,),
         ).fetchone()
     if not user:
         return jsonify({"error": "not found"}), 404
-    area_name = next((k for k, v in AREAS.items() if v == user["area_url"]), user["area_url"])
+    area_name = next(
+        (k for k, v in AREAS.items() if v == user["area_url"]), user["area_url"]
+    )
     return jsonify({"area_name": area_name, "target_date": user["target_date"]})
 
 
@@ -107,13 +109,16 @@ def status():
 def unsubscribe(token: str):
     with get_db() as conn:
         user = conn.execute(
-            "SELECT area_url, target_date FROM users WHERE token=? AND active=1", (token,)
+            "SELECT area_url, target_date FROM users WHERE token=? AND active=1",
+            (token,),
         ).fetchone()
 
     if not user:
         return render_template("unsubscribe.html", done=True, not_found=True)
 
-    area_name = next((k for k, v in AREAS.items() if v == user["area_url"]), user["area_url"])
+    area_name = next(
+        (k for k, v in AREAS.items() if v == user["area_url"]), user["area_url"]
+    )
 
     if request.method == "POST":
         with get_db() as conn:
@@ -123,7 +128,9 @@ def unsubscribe(token: str):
                 (user["area_url"],),
             ).fetchone()[0]
             if remaining == 0:
-                conn.execute("DELETE FROM active_slots WHERE url=?", (user["area_url"],))
+                conn.execute(
+                    "DELETE FROM active_slots WHERE url=?", (user["area_url"],)
+                )
         return render_template("unsubscribe.html", done=True)
 
     return render_template(

@@ -17,6 +17,7 @@ def create_app() -> Flask:
     init_db()
 
     from app.routes import bp
+
     app.register_blueprint(bp)
 
     return app

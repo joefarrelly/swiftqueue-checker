@@ -20,6 +20,7 @@ _CHECK_EVERY = 60
 
 # ── DB helpers ────────────────────────────────────────────────────────────────
 
+
 def _load_previous_slots() -> dict[str, set[tuple[str, str, str]]]:
     previous: dict[str, set[tuple[str, str, str]]] = {}
     with get_db() as conn:
@@ -53,6 +54,7 @@ def _get_users_for_slot(url: str, slot_date: str) -> list[dict]:
 
 # ── Poll ──────────────────────────────────────────────────────────────────────
 
+
 def _poll_url(url: str, previous: dict[str, set[tuple[str, str, str]]]) -> None:
     try:
         slots = fetch_slots(url)
@@ -71,7 +73,12 @@ def _poll_url(url: str, previous: dict[str, set[tuple[str, str, str]]]) -> None:
             log.info("New slot: %s @ %s", body, url)
             for user in users:
                 if user["push_subscription"]:
-                    send_push(user["push_subscription"], "SwiftQueue slot available!", body, url)
+                    send_push(
+                        user["push_subscription"],
+                        "SwiftQueue slot available!",
+                        body,
+                        url,
+                    )
                 if user["telegram_chat_id"]:
                     send_telegram(
                         user["telegram_chat_id"],
@@ -107,6 +114,7 @@ def _poll_url(url: str, previous: dict[str, set[tuple[str, str, str]]]) -> None:
 
 
 # ── Telegram account-linking listener ────────────────────────────────────────
+
 
 def _run_telegram_listener() -> None:
     """Handles /start <token> messages to link Telegram accounts."""
@@ -160,6 +168,7 @@ def _run_telegram_listener() -> None:
 
 # ── Entry point ───────────────────────────────────────────────────────────────
 
+
 def main() -> None:
     logging.basicConfig(
         level=logging.INFO,
@@ -168,6 +177,7 @@ def main() -> None:
     )
 
     from dotenv import load_dotenv
+
     load_dotenv()
 
     init_db()
