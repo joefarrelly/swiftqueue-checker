@@ -1,0 +1,9 @@
+{
+  "name": "SwiftQueue Checker",
+  "short_name": "SwiftQueue",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f0f4f8",
+  "theme_color": "#2563eb",
+  "icons": []
+}

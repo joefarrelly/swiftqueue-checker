@@ -1,7 +1,24 @@
 services:
+  web:
+    build: .
+    command: gunicorn "app:create_app()" --bind 0.0.0.0:5000 --workers 2
+    volumes:
+      - ./data:/app/data
+    env_file: .env
+    restart: unless-stopped
+    networks:
+      - web
+
   checker:
     build: .
-    env_file: .env
+    command: python -m checker.worker
     volumes:
-      - ./config:/app/config
+      - ./data:/app/data
+    env_file: .env
     restart: unless-stopped
+    networks:
+      - web
+
+networks:
+  web:
+    external: true
