@@ -24,4 +24,4 @@ jobs:
           USER: ${{ secrets.SERVER_USER }}
         run: |
           ssh "$USER@$HOST" \
-            'cd ~/apps/swiftqueue-checker && git pull && cd ~/apps && docker compose up -d --build swiftqueue-web swiftqueue-checker'
+            'cd ~/apps/swiftqueue && git pull && cd ~/apps && docker compose up -d --build swiftqueue-web swiftqueue-checker'
