@@ -1,0 +1,7 @@
+User-agent: *
+Disallow: /slots/
+Disallow: /registration/
+Disallow: /unsubscribe/
+Disallow: /status
+
+Sitemap: https://queue4me.uk/sitemap.xml

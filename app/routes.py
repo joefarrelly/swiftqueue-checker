@@ -23,6 +23,22 @@ def service_worker():
     return current_app.send_static_file("sw.js")
 
 
+@bp.route("/robots.txt")
+def robots():
+    from flask import current_app
+
+    return current_app.send_static_file("robots.txt")
+
+
+@bp.route("/sitemap.xml")
+def sitemap():
+    from flask import current_app
+
+    resp = current_app.send_static_file("sitemap.xml")
+    resp.content_type = "application/xml"
+    return resp
+
+
 @bp.route("/")
 def index():
     return render_template(
