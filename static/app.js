@@ -129,6 +129,12 @@ const state = {
     knownSlotKeys: new Set(), lastCheckedAt: null, refreshStatusTimer: null,
 };
 
+// ── Service worker registration ───────────────────────────────────────────────
+
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("/sw.js").catch(() => {});
+}
+
 // ── Toast ─────────────────────────────────────────────────────────────────────
 
 function showToast(msg) {
@@ -257,6 +263,55 @@ function copyTelegramLink() {
     });
 }
 
+// ── Push notifications ────────────────────────────────────────────────────────
+
+function urlB64ToUint8Array(b64) {
+    const padding = "=".repeat((4 - (b64.length % 4)) % 4);
+    const base64 = (b64 + padding).replace(/-/g, "+").replace(/_/g, "/");
+    const raw = atob(base64);
+    return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)));
+}
+
+function setPushState(subscribed) {
+    const btn = document.getElementById("push-enable-btn");
+    const done = document.getElementById("push-enabled");
+    if (!btn) return;
+    btn.hidden = subscribed;
+    if (done) done.hidden = !subscribed;
+}
+
+function initPushSection(alreadySubscribed) {
+    const section = document.getElementById("push-section");
+    if (!section) return;
+    if (!VAPID_PUBLIC_KEY || !("PushManager" in window) || !("serviceWorker" in navigator)) {
+        section.hidden = true;
+        return;
+    }
+    section.hidden = false;
+    setPushState(alreadySubscribed);
+}
+
+async function subscribeToPush() {
+    if (!VAPID_PUBLIC_KEY || !("PushManager" in window)) return;
+    try {
+        const permission = await Notification.requestPermission();
+        if (permission !== "granted") return;
+        const reg = await navigator.serviceWorker.ready;
+        const sub = await reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlB64ToUint8Array(VAPID_PUBLIC_KEY),
+        });
+        const res = await fetch("/push/subscribe", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token: state.token, subscription: sub.toJSON() }),
+        });
+        if (res.ok) setPushState(true);
+    } catch (err) {
+        console.error("Push subscribe error:", err);
+    }
+}
+
 // ── State transitions ─────────────────────────────────────────────────────────
 
 function showError(msg) {
@@ -295,6 +350,7 @@ function showRegisteredState(token, areaName, targetDate) {
     const linkBtn = document.getElementById("telegram-link-btn");
     if (linkBtn && telegramUrl) linkBtn.href = telegramUrl;
 
+    initPushSection(false);
     refreshSlots(false);
     clearError();
 }
@@ -404,6 +460,7 @@ if (existingToken) {
             if (data) {
                 showRegisteredState(existingToken, data.area_name, data.target_date);
                 setTelegramState(data.telegram_linked);
+                initPushSection(data.push_subscribed ?? false);
             } else {
                 localStorage.removeItem("swiftqueue_token");
             }

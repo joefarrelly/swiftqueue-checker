@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import secrets
@@ -41,10 +42,13 @@ def sitemap():
 
 @bp.route("/")
 def index():
+    from flask import current_app
+
     return render_template(
         "index.html",
         areas=AREAS,
         telegram_bot=os.environ.get("TELEGRAM_BOT_USERNAME", ""),
+        vapid_public_key=current_app.config.get("VAPID_PUBLIC_KEY", ""),
     )
 
 
@@ -101,11 +105,16 @@ def registration(token: str):
                 "SELECT 1 FROM telegram_subscribers WHERE token=?", (token,)
             ).fetchone()
         )
+        push_row = conn.execute(
+            "SELECT push_subscription FROM users WHERE token=? AND active=1", (token,)
+        ).fetchone()
+        push_subscribed = bool(push_row and push_row["push_subscription"])
     return jsonify(
         {
             "area_name": area_name,
             "target_date": user["target_date"],
             "telegram_linked": telegram_linked,
+            "push_subscribed": push_subscribed,
         }
     )
 
@@ -160,6 +169,26 @@ def slots(token: str):
     )
 
 
+@bp.route("/push/subscribe", methods=["POST"])
+def push_subscribe():
+    data = request.get_json(silent=True) or {}
+    token = data.get("token")
+    subscription = data.get("subscription")
+    if not token or not subscription:
+        return jsonify({"error": "missing fields"}), 400
+    with get_db() as conn:
+        user = conn.execute(
+            "SELECT id FROM users WHERE token=? AND active=1", (token,)
+        ).fetchone()
+        if not user:
+            return jsonify({"error": "not found"}), 404
+        conn.execute(
+            "UPDATE users SET push_subscription=? WHERE token=?",
+            (json.dumps(subscription), token),
+        )
+    return jsonify({"ok": True})
+
+
 @bp.route("/unsubscribe/<token>", methods=["GET", "POST"])
 def unsubscribe(token: str):
     with get_db() as conn:
@@ -184,7 +213,10 @@ def unsubscribe(token: str):
                 ).fetchall()
             ]
             conn.execute("DELETE FROM telegram_subscribers WHERE token=?", (token,))
-            conn.execute("UPDATE users SET active=0 WHERE token=?", (token,))
+            conn.execute(
+                "UPDATE users SET active=0, push_subscription=NULL WHERE token=?",
+                (token,),
+            )
             remaining = conn.execute(
                 "SELECT COUNT(*) FROM users WHERE area_url=? AND active=1",
                 (user["area_url"],),
