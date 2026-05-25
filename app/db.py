@@ -73,9 +73,11 @@ def init_db() -> None:
                 PRIMARY KEY (url, slot_date, slot_time, clinic)
             );
         """)
-        try:
-            conn.execute(
-                "ALTER TABLE active_slots ADD COLUMN booking_url TEXT DEFAULT ''"
-            )
-        except Exception:
-            pass  # column already exists
+        for migration in [
+            "ALTER TABLE active_slots ADD COLUMN booking_url TEXT DEFAULT ''",
+            "ALTER TABLE users ADD COLUMN push_subscription TEXT",
+        ]:
+            try:
+                conn.execute(migration)
+            except Exception:
+                pass
