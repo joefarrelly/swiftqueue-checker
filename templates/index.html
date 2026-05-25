@@ -17,7 +17,8 @@
 <body>
 <main>
     <h1>SwiftQueue Checker</h1>
-    <p class="subtitle">Get notified the moment an appointment slot opens up before your target date.</p>
+    <p class="subtitle">Get an alert the moment a blood test appointment cancellation opens up before your chosen date.</p>
+    <p class="intro">SwiftQueue is the booking system NHS trusts use for blood tests. Slots are often weeks out, but cancellations come up regularly. This tool watches SwiftQueue for you and alerts you when one appears — so you can book it before anyone else does.</p>
 
     <div class="tab-list" role="tablist">
         <button class="tab-btn tab-btn--active" role="tab" aria-selected="true" data-tab="register">Register</button>
@@ -58,6 +59,7 @@
         <div id="form-fields">
             <div class="field">
                 <label for="area-search">Area</label>
+                <p class="hint-text">Shown on the form or letter your GP gave you</p>
                 <div class="combobox" id="area-combobox">
                     <input type="text" id="area-search" autocomplete="off" placeholder="Search areas…">
                     <ul id="area-listbox" hidden></ul>
@@ -72,6 +74,7 @@
 
             <div class="field">
                 <label for="target_date">Notify me if a slot is available on or before</label>
+                <p class="hint-text">We'll alert you as soon as a slot opens before this date</p>
                 <input type="date" name="target_date" id="target_date" required>
             </div>
         </div>
@@ -81,6 +84,12 @@
         <button type="submit" id="submit-btn" class="btn-primary">Get Notified</button>
     </form>
     <p class="disclaimer">If you book an earlier slot, please cancel your original appointment so others can use it.</p>
+
+    <div class="reassurance">
+        <p><strong>This is not an official NHS service.</strong> SwiftQueue is — it's the NHS appointment booking system used by trusts across the UK. This tool simply monitors SwiftQueue for cancellation slots and alerts you when one opens up before your chosen date.</p>
+        <p>Once you click "Book now", you go directly to SwiftQueue and complete your booking through their system, exactly as you would normally. We have no involvement after that point.</p>
+        <p>We store three things: your chosen area, your target date, and a randomly generated token unique to you. That token is what powers the Telegram link — it's not tied to your name, phone number, or any personal details. Nothing else is stored.</p>
+    </div>
 
     </div><!-- #tab-register -->
 

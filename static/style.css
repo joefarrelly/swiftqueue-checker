@@ -19,7 +19,7 @@ body {
 
 main {
     background: white;
-    border-radius: 14px;
+    border-radius: 4px;
     padding: 2rem;
     width: 100%;
     max-width: 460px;
@@ -47,8 +47,14 @@ p {
 form {
     display: flex;
     flex-direction: column;
-    gap: 1.125rem;
+    gap: 1.5rem;
     margin-top: 1.5rem;
+}
+
+#form-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
 }
 
 .field {
@@ -58,26 +64,32 @@ form {
 }
 
 label {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0b0c0c;
+}
+
+.hint-text {
     font-size: 0.875rem;
-    font-weight: 600;
-    color: #333;
+    color: #505a5f;
+    margin-bottom: 0.25rem;
 }
 
 input[type="date"] {
     width: 100%;
     padding: 0.625rem 0.75rem;
-    border: 1.5px solid #ddd;
-    border-radius: 8px;
+    border: 2px solid #0b0c0c;
+    border-radius: 4px;
     font-size: 1rem;
-    color: #1a1a1a;
+    color: #0b0c0c;
     background: white;
     appearance: none;
 }
 
 input[type="date"]:focus {
-    outline: none;
-    border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    outline: 3px solid #ffdd00;
+    outline-offset: 0;
+    box-shadow: none;
 }
 
 .combobox {
@@ -87,17 +99,17 @@ input[type="date"]:focus {
 .combobox input {
     width: 100%;
     padding: 0.625rem 2.25rem 0.625rem 0.75rem;
-    border: 1.5px solid #ddd;
-    border-radius: 8px;
+    border: 2px solid #0b0c0c;
+    border-radius: 4px;
     font-size: 1rem;
-    color: #1a1a1a;
+    color: #0b0c0c;
     background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 0.625rem center;
 }
 
 .combobox input:focus {
-    outline: none;
-    border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    outline: 3px solid #ffdd00;
+    outline-offset: 0;
+    box-shadow: none;
 }
 
 #area-listbox {
@@ -106,8 +118,8 @@ input[type="date"]:focus {
     left: 0;
     right: 0;
     background: white;
-    border: 1.5px solid #ddd;
-    border-radius: 8px;
+    border: 2px solid #0b0c0c;
+    border-radius: 4px;
     max-height: 220px;
     overflow-y: auto;
     z-index: 10;
@@ -147,7 +159,7 @@ input[type="date"]:focus {
     background: #2563eb;
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 4px;
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
@@ -172,7 +184,7 @@ input[type="date"]:focus {
     background: #dc2626;
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 4px;
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
@@ -195,7 +207,7 @@ input[type="date"]:focus {
     padding: 0.75rem;
     background: #2AABEE;
     color: white;
-    border-radius: 8px;
+    border-radius: 4px;
     font-size: 1rem;
     font-weight: 600;
     text-align: center;
@@ -211,7 +223,7 @@ input[type="date"]:focus {
     margin-top: 1.25rem;
     padding: 1rem;
     background: #f0f4f8;
-    border-radius: 8px;
+    border-radius: 4px;
 }
 
 .registered-info p {
@@ -266,7 +278,7 @@ input[type="date"]:focus {
     padding: 1rem;
     background: #f8fafc;
     border: 1.5px solid #e2e8f0;
-    border-radius: 8px;
+    border-radius: 4px;
 }
 
 .slots-card-header {
@@ -360,11 +372,38 @@ a {
     color: #2563eb;
 }
 
+.intro {
+    font-size: 0.9375rem;
+    color: #333;
+    margin-top: 0.75rem;
+    margin-bottom: 0;
+    line-height: 1.6;
+}
+
 .disclaimer {
     margin-top: 2rem;
     font-size: 0.8125rem;
     color: #6b7280;
     text-align: center;
+}
+
+.reassurance {
+    margin-top: 1.5rem;
+    padding: 1rem 1.125rem;
+    background: #f8fafc;
+    border-left: 4px solid #cbd5e1;
+    border-radius: 0 4px 4px 0;
+}
+
+.reassurance p {
+    font-size: 0.8125rem;
+    color: #444;
+    margin-bottom: 0.5rem;
+    line-height: 1.55;
+}
+
+.reassurance p:last-child {
+    margin-bottom: 0;
 }
 
 /* ── Tabs ──────────────────────────────────────────────────────────────────── */
