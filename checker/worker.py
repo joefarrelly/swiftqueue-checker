@@ -10,7 +10,7 @@ import requests
 
 from app.areas import AREAS
 from app.db import get_db, init_db
-from app.notifications import edit_telegram_message, send_telegram
+from app.notifications import edit_telegram_message, send_push, send_telegram
 from app.scraper import fetch_slots
 
 log = logging.getLogger(__name__)
@@ -163,8 +163,8 @@ def _poll_url(url: str, previous: dict[str, set[tuple[str, str, str]]]) -> None:
                         "SELECT chat_id FROM telegram_subscribers WHERE token=?",
                         (user["token"],),
                     ).fetchall()
+                booking_url = booking_urls.get((slot_date, slot_time, clinic), url)
                 for sub in subscribers:
-                    booking_url = booking_urls.get((slot_date, slot_time, clinic), url)
                     msg_id = send_telegram(
                         sub["chat_id"], _telegram_message_text(body, booking_url)
                     )
@@ -178,6 +178,19 @@ def _poll_url(url: str, previous: dict[str, set[tuple[str, str, str]]]) -> None:
                             slot_time,
                             clinic,
                         )
+                if user.get("push_subscription"):
+                    still_active = send_push(
+                        user["push_subscription"],
+                        "SwiftQueue slot available!",
+                        body,
+                        booking_url,
+                    )
+                    if not still_active:
+                        with get_db() as conn:
+                            conn.execute(
+                                "UPDATE users SET push_subscription=NULL WHERE token=?",
+                                (user["token"],),
+                            )
 
         with get_db() as conn:
             for slot_date, slot_time, clinic in new_slots:

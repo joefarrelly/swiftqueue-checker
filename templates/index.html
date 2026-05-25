@@ -42,6 +42,13 @@
                 </div>
             </div>
             {% endif %}
+
+            <div id="push-section" hidden>
+                <button id="push-enable-btn" type="button" class="btn-push" onclick="subscribeToPush()">
+                    Enable push notifications
+                </button>
+                <p id="push-enabled" class="push-enabled-label" hidden>Push notifications enabled ✓</p>
+            </div>
         </div>
 
         <div id="slots-card" class="notifications-card">
@@ -119,6 +126,7 @@
 
 <script>
     const TELEGRAM_BOT = {{ telegram_bot | tojson }};
+    const VAPID_PUBLIC_KEY = {{ vapid_public_key | tojson }};
 </script>
 <script src="/static/app.js"></script>
 </body>
