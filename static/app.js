@@ -124,7 +124,10 @@ const SCRAPE_INTERVAL_MS = 60_000;
 const POLL_BUFFER_MS = 5_000;
 const MIN_POLL_DELAY_MS = 5_000;
 
-const state = { registered: false, token: null, pollTimer: null, telegramPollTimer: null, knownSlotKeys: new Set() };
+const state = {
+    registered: false, token: null, pollTimer: null, telegramPollTimer: null,
+    knownSlotKeys: new Set(), lastCheckedAt: null, refreshStatusTimer: null,
+};
 
 // ── Toast ─────────────────────────────────────────────────────────────────────
 
@@ -161,6 +164,21 @@ function scheduleNextPoll(lastScrapedAt) {
     state.pollTimer = setTimeout(() => refreshSlots(true), delay);
 }
 
+function updateRefreshStatus() {
+    const el = document.getElementById("slots-refresh-status");
+    if (!el || !state.lastCheckedAt) return;
+    const secs = Math.floor((Date.now() - state.lastCheckedAt) / 1000);
+    if (secs < 5) {
+        el.textContent = "Just checked";
+    } else if (secs < 60) {
+        el.textContent = `Checked ${secs}s ago`;
+    } else {
+        const m = Math.floor(secs / 60);
+        const s = secs % 60;
+        el.textContent = `Checked ${m}m ${s}s ago`;
+    }
+}
+
 async function refreshSlots(notify) {
     try {
         const res = await fetch(`/slots/${state.token}`);
@@ -189,6 +207,11 @@ async function refreshSlots(notify) {
             ).join("");
         }
 
+        state.lastCheckedAt = Date.now();
+        updateRefreshStatus();
+        if (!state.refreshStatusTimer) {
+            state.refreshStatusTimer = setInterval(updateRefreshStatus, 1000);
+        }
         scheduleNextPoll(last_scraped_at);
     } catch {
         scheduleNextPoll(null);
@@ -280,8 +303,11 @@ function showUnregisteredState() {
     state.registered = false;
     state.token = null;
     state.knownSlotKeys.clear();
+    state.lastCheckedAt = null;
     clearTimeout(state.pollTimer);
     state.pollTimer = null;
+    clearInterval(state.refreshStatusTimer);
+    state.refreshStatusTimer = null;
     stopTelegramLinkPoll();
     localStorage.removeItem("swiftqueue_token");
 

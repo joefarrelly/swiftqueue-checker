@@ -269,6 +269,23 @@ input[type="date"]:focus {
     border-radius: 8px;
 }
 
+.slots-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.slots-card-header h2 {
+    margin-bottom: 0;
+}
+
+.slots-refresh-status {
+    font-size: 0.75rem;
+    color: #bbb;
+    flex-shrink: 0;
+}
+
 .notifications-card h2 {
     font-size: 0.875rem;
     font-weight: 600;

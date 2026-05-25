@@ -1,5 +1,7 @@
 # SwiftQueue Checker
 
+**Live at [queue4me.uk](https://queue4me.uk)**
+
 My partner was sent for blood tests by her GP. The earliest slot available was over four weeks away. The GP mentioned that cancellations do come up and you can get lucky with something sooner, so she booked the four-week slot as a backup and I built this to watch for earlier ones.
 
 Within 30 minutes we had a next-day appointment. We actually did several hops — each time a closer slot appeared, she'd book it and immediately cancel the previous one to free it up for someone else. The end result was a next-day appointment, and every slot we vacated along the way went back into the pool.
@@ -13,7 +15,7 @@ SwiftQueue Checker is a web app that watches SwiftQueue for appointment slots be
 ## How it works
 
 - Register via the web UI: search for your area and set a target date
-- Available slots matching your criteria appear on the page and update automatically
+- Available slots matching your criteria appear on the page and update automatically, with a live "last checked" indicator
 - Optionally link a Telegram account to receive alerts directly in Telegram
 - Multiple Telegram accounts can link to the same registration — share the link with anyone who should also get notified
 - The background checker polls all watched areas every 60 seconds
@@ -55,6 +57,7 @@ Edit `.env`:
 SECRET_KEY=a-long-random-string
 TELEGRAM_TOKEN=your_bot_token_here        # optional
 TELEGRAM_BOT_USERNAME=YourBotUsername     # optional, shows the Link Telegram button
+ADMIN_CHAT_ID=your_chat_id               # optional, scrape failure alerts
 ```
 
 **3. Start**

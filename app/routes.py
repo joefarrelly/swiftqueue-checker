@@ -225,6 +225,10 @@ def _notify_existing_slots(
                             "clinic": clinic,
                         }
                     )
+                conn.execute(
+                    "INSERT OR REPLACE INTO area_meta (url, last_scraped_at) VALUES (?,?)",
+                    (area_url, now),
+                )
             log.info("Immediate scrape for %s found %d slot(s)", area_url, len(rows))
         else:
             with get_db() as conn:
