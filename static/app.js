@@ -104,6 +104,22 @@ function initCombobox() {
 
 const combobox = initCombobox();
 
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+
+function switchTab(name) {
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        const active = btn.dataset.tab === name;
+        btn.classList.toggle('tab-btn--active', active);
+        btn.setAttribute('aria-selected', String(active));
+    });
+    document.getElementById('tab-register').hidden = name !== 'register';
+    document.getElementById('tab-how').hidden = name !== 'how';
+}
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+});
+
 const SCRAPE_INTERVAL_MS = 60_000;
 const POLL_BUFFER_MS = 5_000;
 const MIN_POLL_DELAY_MS = 5_000;

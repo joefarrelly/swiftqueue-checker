@@ -14,6 +14,13 @@
     <h1>SwiftQueue Checker</h1>
     <p class="subtitle">Get notified the moment an appointment slot opens up before your target date.</p>
 
+    <div class="tab-list" role="tablist">
+        <button class="tab-btn tab-btn--active" role="tab" aria-selected="true" data-tab="register">Register</button>
+        <button class="tab-btn" role="tab" aria-selected="false" data-tab="how">How it works</button>
+    </div>
+
+    <div id="tab-register" role="tabpanel">
+
     <div id="registered-state" hidden>
         <div class="registered-info">
             <p id="registered-detail"></p>
@@ -66,6 +73,31 @@
         <button type="submit" id="submit-btn" class="btn-primary">Get Notified</button>
     </form>
     <p class="disclaimer">If you book an earlier slot, please cancel your original appointment so others can use it.</p>
+
+    </div><!-- #tab-register -->
+
+    <div id="tab-how" role="tabpanel" hidden>
+        <p class="how-intro">SwiftQueue is the booking system used by NHS trusts across the UK for blood tests. When your GP sends you for blood tests, there are often no slots available for weeks — but cancellations come up all the time. This tool watches for them and alerts you the moment one opens up before your target date.</p>
+
+        <ol class="how-steps">
+            <li><strong>Register</strong> — the form your GP gives you usually shows which SwiftQueue area to use. Pick it from the dropdown, set the latest date you'd accept, and click "Get Notified". Your registration is saved in this browser — just come back to this page.</li>
+            <li><strong>It checks every minute</strong> — if a slot opens before your date, it appears on your page automatically. No need to keep refreshing.</li>
+            <li><strong>Link Telegram</strong> — optional but recommended. You'll get an instant push notification when a slot appears so you don't need to keep the tab open.</li>
+            <li><strong>When a slot comes up</strong> — click "Book now" to go straight to SwiftQueue and grab it. Slots go fast.</li>
+            <li><strong>Keep going for earlier</strong> — once you've booked, you can come back and register again targeting an even earlier date. Each time you book something sooner, cancel the appointment you're replacing so it goes back into the pool for someone else.</li>
+        </ol>
+
+        {% if telegram_bot %}
+        <p class="how-section-label">What the Telegram alert looks like</p>
+        <div class="tg-bubble">
+            <div class="tg-bubble-sender">SwiftQueue Checker</div>
+            <p>🗓 <strong>SwiftQueue slot available!</strong></p>
+            <p class="tg-bubble-slot">28 May 2025 at 09:30 — Citywest Health Campus</p>
+            <span class="tg-bubble-link">Book now →</span>
+        </div>
+        {% endif %}
+    </div><!-- #tab-how -->
+
 </main>
 
 <script>
