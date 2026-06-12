@@ -1,12 +1,12 @@
 services:
   web:
     build: .
-    command: flask --app "app:create_app()" run --host 0.0.0.0 --debug
+    command: flask --app "app:create_app()" run --host 0.0.0.0 --port 5006 --debug
     volumes:
       - .:/app
       - swiftqueue_data:/app/data
     ports:
-      - "5000:5000"
+      - "5006:5006"
     env_file: .env
     restart: unless-stopped
 

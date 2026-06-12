@@ -1,0 +1,26 @@
+#!/bin/sh
+set -e
+
+# Python: run ruff via uvx (no-op if no .py files)
+if command -v uvx >/dev/null 2>&1; then
+    uvx ruff check --fix . 2>/dev/null || true
+    uvx ruff format . 2>/dev/null || true
+    git add -u
+fi
+
+# JS/TS: root-level package.json (e.g. React apps), else frontend/ subdir
+if command -v npm >/dev/null 2>&1; then
+    if [ -f "package.json" ]; then
+        [ ! -d node_modules ] && npm install --silent
+        npm run lint -- --fix 2>/dev/null || true
+        npm run format 2>/dev/null || true
+        git add -u
+    elif [ -d "frontend" ] && [ -f "frontend/package.json" ]; then
+        cd frontend
+        [ ! -d node_modules ] && npm install --silent
+        npm run lint -- --fix 2>/dev/null || true
+        npm run format 2>/dev/null || true
+        cd ..
+        git add -u
+    fi
+fi
