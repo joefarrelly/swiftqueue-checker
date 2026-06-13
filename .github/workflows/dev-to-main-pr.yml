@@ -18,14 +18,13 @@ jobs:
           MERGED_BRANCH: ${{ github.event.pull_request.head.ref }}
           REPO: ${{ github.repository }}
         run: |
-          OWNER="${REPO%%/*}"
-          EXISTING=$(gh pr list \
+          PR_NUMBER=$(gh pr list \
             --repo "$REPO" \
             --base main \
-            --head "${OWNER}:dev" \
-            --json number,body)
-
-          PR_NUMBER=$(echo "$EXISTING" | jq -r '.[0].number // empty')
+            --head dev \
+            --state open \
+            --json number \
+            --jq '.[0].number // empty')
 
           if [ -z "$PR_NUMBER" ]; then
             gh pr create \
@@ -35,7 +34,7 @@ jobs:
               --title "dev into main" \
               --body "- $MERGED_BRANCH"
           else
-            BODY=$(echo "$EXISTING" | jq -r '.[0].body')
+            BODY=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json body --jq '.body')
 
             if echo "$BODY" | grep -qF "- $MERGED_BRANCH"; then
               echo "Branch already listed, skipping."
