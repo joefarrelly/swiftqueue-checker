@@ -1,7 +1,8 @@
-.env
 __pycache__/
-*.pyc
-.venv/
-.claude/settings.local.json
-data/
-scripts/
+*.py[cod]
+.env
+.env.*
+*.egg-info/
+dist/
+build/
+.DS_Store
